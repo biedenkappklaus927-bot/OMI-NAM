@@ -1,0 +1,9 @@
+{
+  "name": "OMI NAM - Quantum AI Human Proxy",
+  "short_name": "OMI NAM",
+  "description": "Quantum AI that sees through your camera and guides your actions",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a0033",
+  "theme_color": "#1a0033"
+}
