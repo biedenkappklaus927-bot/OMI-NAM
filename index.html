@@ -90,3 +90,186 @@
             text-transform: uppercase;
             letter-spacing: 1px;
             font-weight: bold;
+        }
+        
+        .capture-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(255, 0, 255, 0.7);
+        }
+        
+        .response-container {
+            width: 100%;
+            max-width: 500px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 25px;
+            margin-top: 25px;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            border: 1px solid rgba(255, 0, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .response-text {
+            font-size: 1.3rem;
+            line-height: 1.6;
+            color: #e6ccff;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 25px;
+        }
+        
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid #ff00ff;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 12px 25px;
+            background: rgba(0, 255, 0, 0.2);
+            border-radius: 25px;
+            font-size: 1rem;
+            display: none;
+            border: 1px solid rgba(0, 255, 0, 0.3);
+        }
+        
+        .error {
+            background: rgba(255, 0, 0, 0.2);
+            border-color: rgba(255, 0, 0, 0.3);
+        }
+        
+        .omni-logo {
+            font-size: 4rem;
+            margin-bottom: 10px;
+            animation: pulse 3s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.7; }
+            50% { opacity: 1; }
+            100% { opacity: 0.7; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="omni-logo">🌀</div>
+        <h1>OMI NAM</h1>
+        <p>Your Quantum AI Physical Guide</p>
+    </div>
+    
+    <div class="camera-container">
+        <video id="camera" autoplay playsinline></video>
+    </div>
+    
+    <div class="controls">
+        <button id="capture" class="capture-btn">Activate OMI NAM</button>
+        
+        <div id="loading" class="loading">
+            <div class="loading-spinner"></div>
+            <div>OMI NAM is analyzing reality...</div>
+        </div>
+        
+        <div id="status" class="status"></div>
+    </div>
+    
+    <div id="response" class="response-container">
+        <div class="response-text">Point your camera at any object to awaken OMI NAM</div>
+    </div>
+
+    <script>
+        const video = document.getElementById('camera');
+        const captureBtn = document.getElementById('capture');
+        const responseDiv = document.getElementById('response');
+        const loadingDiv = document.getElementById('loading');
+        const statusDiv = document.getElementById('status');
+        
+        // Backend URL (update with your Glitch URL later)
+        const BACKEND_URL = 'https://your-omni-nam-backend.glitch.me/analyze';
+        
+        async function initCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        facingMode: 'environment',
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    } 
+                });
+                video.srcObject = stream;
+                showStatus('OMI NAM camera systems online', false);
+            } catch (err) {
+                showStatus('Camera access denied - OMI NAM needs vision', true);
+            }
+        }
+        
+        captureBtn.addEventListener('click', async () => {
+            try {
+                loadingDiv.style.display = 'block';
+                responseDiv.style.display = 'none';
+                
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0);
+                const imageData = canvas.toDataURL('image/jpeg', 0.8);
+                
+                const response = await fetch(BACKEND_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ image: imageData })
+                });
+                
+                const { action, speech } = await response.json();
+                
+                responseDiv.innerHTML = `<div class="response-text">${action}</div>`;
+                responseDiv.style.display = 'flex';
+                
+                if ('speechSynthesis' in window) {
+                    const utterance = new SpeechSynthesisUtterance(speech);
+                    utterance.rate = 0.9;
+                    utterance.pitch = 1.1;
+                    speechSynthesis.speak(utterance);
+                }
+                
+                showStatus('OMI NAM analysis complete', false);
+            } catch (error) {
+                showStatus('OMI NAM systems disrupted. Try again.', true);
+            } finally {
+                loadingDiv.style.display = 'none';
+            }
+        });
+        
+        function showStatus(message, isError) {
+            statusDiv.textContent = message;
+            statusDiv.className = isError ? 'status error' : 'status';
+            statusDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 3000);
+        }
+        
+        initCamera();
+    </script>
+</body>
+</html>
